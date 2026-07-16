@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SASCE WIL AFRICA CONFERENCE 2026 — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#2B4C6F;
+    --navy-deep:#1E3A56;
+    --teal:#3CAEA3;
+    --teal-deep:#008B8B;
+    --blue:#007BFF;
+    --blue-deep:#0062CC;
+    --bg:#FFFFFF;
+    --bg-soft:#F7F9FA;
+    --ink:#2A2A2A;
+    --ink-soft:#5B6670;
+    --line:rgba(43,76,111,0.12);
+    --radius:4px;
+    --shadow:0 2px 10px rgba(43,76,111,0.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Open Sans',sans-serif;
+    color:var(--ink);
+    background:var(--bg-soft);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:'Roboto',sans-serif;}
+  a{color:inherit;}
+  .wrap{max-width:100%;margin:0 auto;padding:0 32px;}
+  @media (max-width:640px){.wrap{padding:0 16px;}}
+
+  .topbar{border-bottom:1px solid var(--line);background:#fff;}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 32px;}
+  .brand{display:flex;align-items:center;gap:12px;font-family:'Roboto',sans-serif;font-weight:700;font-size:16px;color:var(--navy);text-decoration:none;}
+  .brand img{height:36px;width:auto;display:block;}
+  .brand .tag{font-weight:400;font-size:12.5px;color:var(--ink-soft);}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .topbar-right a{font-size:13px;font-weight:600;color:var(--blue);text-decoration:none;}
+
+  /* ---------- LOGIN GATE ---------- */
+  .gate{min-height:calc(100vh - 65px);display:flex;align-items:center;justify-content:center;padding:32px;}
+  .gate-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:40px;max-width:380px;width:100%;
+  }
+  .gate-card h2{font-size:19px;color:var(--navy);margin-bottom:8px;}
+  .gate-card p{font-size:13.5px;color:var(--ink-soft);margin-bottom:20px;}
+  .gate-card input{
+    width:100%;font-size:14.5px;padding:12px 14px;border:1px solid #D3D9DE;border-radius:var(--radius);
+    outline:none;margin-bottom:14px;
+  }
+  .gate-card input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,123,255,0.12);}
+  .gate-card button{
+    width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);
+    padding:12px;font-size:14.5px;font-weight:700;cursor:pointer;transition:background .15s ease;
+  }
+  .gate-card button:hover{background:var(--blue-deep);}
+  .gate-error{display:none;background:#FBEAEA;border:1px solid #D64545;color:#B23A3A;border-radius:var(--radius);padding:10px 14px;font-size:13px;margin-bottom:14px;}
+  .gate-error.show{display:block;}
+
+  /* ---------- DASHBOARD ---------- */
+  .dashboard{display:none;padding:28px 0 60px;}
+  .dashboard.show{display:block;}
+
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;}
+  .stat-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;}
+  .stat-card .num{font-family:'Roboto',sans-serif;font-size:28px;font-weight:700;color:var(--navy);}
+  .stat-card .lbl{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-top:4px;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .tab-btn{
+    background:#fff;border:1px solid var(--line);border-radius:20px;padding:9px 18px;
+    font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:all .15s ease;
+  }
+  .tab-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+  .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px;justify-content:space-between;}
+  .toolbar .search{flex:1;min-width:220px;}
+  .toolbar input[type=search]{
+    width:100%;font-size:13.5px;padding:10px 14px;border:1px solid #D3D9DE;border-radius:var(--radius);outline:none;
+  }
+  .toolbar input[type=search]:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,123,255,0.12);}
+  .toolbar-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .btn-sm{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:9px 16px;
+    font-size:12.5px;font-weight:700;color:var(--navy);cursor:pointer;transition:all .15s ease;
+  }
+  .btn-sm:hover{border-color:var(--navy);}
+  .btn-sm.primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .btn-sm.primary:hover{background:var(--blue-deep);}
+
+  .table-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .table-scroll{overflow-x:auto;max-width:100%;}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;}
+  thead th{
+    background:var(--bg-soft);color:var(--navy);text-align:left;padding:10px 14px;
+    font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:700;
+    white-space:nowrap;border-bottom:1px solid var(--line);position:sticky;top:0;
+  }
+  tbody td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:top;max-width:260px;}
+  tbody tr:hover{background:var(--bg-soft);}
+  tbody tr:last-child td{border-bottom:none;}
+  .cell-truncate{display:block;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cell-link{color:var(--blue);font-weight:600;text-decoration:none;white-space:nowrap;}
+  .cell-link:hover{text-decoration:underline;}
+  .empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
+
+  .loading{padding:60px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a href="index.html" class="brand"><img src="" alt="SASCE" id="brandLogo"><span>SASCE WIL AFRICA CONFERENCE 2026 <span class="tag">· Admin</span></span></a>
+    <div class="topbar-right">
+      <a href="index.html">← Back to site</a>
+    </div>
+  </div>
+</div>
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <h2>Admin sign-in</h2>
+    <p>Enter the admin key to view conference submissions. This key is set in Code.gs (ADMIN_KEY) — it is not stored anywhere in this page's source.</p>
+    <div class="gate-error" id="gateError">Incorrect key, or the server rejected the request. Please try again.</div>
+    <input type="password" id="adminKeyInput" placeholder="Admin key" autocomplete="off">
+    <button type="button" id="gateSubmit">Sign in</button>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div class="wrap">
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-tab="abstracts" id="tabAbstracts">Abstracts</button>
+      <button type="button" class="tab-btn" data-tab="registrations" id="tabRegistrations">Registrations</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search"><input type="search" id="searchInput" placeholder="Search this table…"></div>
+      <div class="toolbar-actions">
+        <button type="button" class="btn-sm" id="refreshBtn">↻ Refresh</button>
+        <button type="button" class="btn-sm primary" id="exportBtn">⭳ Export CSV</button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table id="dataTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="loading" id="loadingState">Loading submissions…</div>
+      <div class="empty-state" id="emptyState" style="display:none;">No submissions match your search.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== CONFIGURE AFTER DEPLOYING THE GOOGLE APPS SCRIPT WEB APP =====
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrgmuw5zfTtqfyTAlvaYEU0Q7HiYGte1Lgu11lEKJ3-1F-gFuOzmJLQf6sn2cTkp-otA/exec";
+
+  // Reuse the logo already embedded in index.html/abstract-submission.html if this
+  // page is opened in the same browser session; otherwise it stays blank (no big
+  // base64 blob duplicated here to keep this file small).
+  fetch('index.html').then(r => r.text()).then(html => {
+    const m = html.match(/<a href="index\.html" class="brand"><img src="([^"]+)"/);
+    if (m) {
+      document.getElementById('brandLogo').src = m[1];
+    }
+  }).catch(() => {});
+
+  const gate = document.getElementById('gate');
+  const dashboard = document.getElementById('dashboard');
+  const gateError = document.getElementById('gateError');
+  const adminKeyInput = document.getElementById('adminKeyInput');
+  const gateSubmit = document.getElementById('gateSubmit');
+
+  const statRow = document.getElementById('statRow');
+  const tableHead = document.getElementById('tableHead');
+  const tableBody = document.getElementById('tableBody');
+  const loadingState = document.getElementById('loadingState');
+  const emptyState = document.getElementById('emptyState');
+  const searchInput = document.getElementById('searchInput');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const tabAbstracts = document.getElementById('tabAbstracts');
+  const tabRegistrations = document.getElementById('tabRegistrations');
+
+  let adminKey = sessionStorage.getItem('wilAdminKey') || '';
+  let dataStore = { abstracts: [], registrations: [] };
+  let activeTab = 'abstracts';
+
+  const ABSTRACT_COLUMNS = [
+    'Timestamp','Submission ID','Edit Link','Corresponding author','Email','Phone','Country',
+    'Institution','Role','ORCID iD','Co-authors','Abstract title','Sub-theme','Submission type',
+    'Presentation format','Keywords','Abstract text','Word count','Ethical clearance',
+    'Funding / acknowledgements','Attendance mode','Journal interest','Notes','Declaration accepted'
+  ];
+  const REGISTRATION_COLUMNS = [
+    'Timestamp','Submission ID','Edit Link','Email','Title','Name and Surname','Institution Organisation',
+    'Designation Position','Official Address','Office Telephone Number','Official Email','Cellphone Number',
+    'Research Publishing Workshop Attendance','4IR CoE WIL Site Visit Attendance','Hotel Arrival Time',
+    'Hotel Name','Conference Registration Arrival Time','Other Arrival Details','Poster Presentation',
+    'Plenary Presentation','Accommodation Booking Method','Payment Confirmation Available',
+    'Payment Reference Number','Payment Date','Proof of Payment File URL',
+    'Pre-conference Programme Attendance','Open Poster/Exhibition',
+    'Subtheme Breakaway or Workshop','Plenary Theme Paper','Registration Fee Category'
+  ];
+
+  function columnsFor(tab){ return tab === 'abstracts' ? ABSTRACT_COLUMNS : REGISTRATION_COLUMNS; }
+
+  function loadData(){
+    loadingState.style.display = 'block';
+    loadingState.textContent = 'Loading submissions…';
+    emptyState.style.display = 'none';
+    tableBody.innerHTML = '';
+    tableHead.innerHTML = '';
+
+    fetch(`${SCRIPT_URL}?action=admin&key=${encodeURIComponent(adminKey)}`)
+      .then(res => res.json())
+      .then(data => {
+        if(!data || data.result !== 'success'){
+          gate.style.display = 'flex';
+          dashboard.classList.remove('show');
+          gateError.textContent = (data && data.message) ? data.message : 'Incorrect key, or the server rejected the request.';
+          gateError.classList.add('show');
+          sessionStorage.removeItem('wilAdminKey');
+          return;
+        }
+        dataStore.abstracts = data.abstracts || [];
+        dataStore.registrations = data.registrations || [];
+        sessionStorage.setItem('wilAdminKey', adminKey);
+        gate.style.display = 'none';
+        dashboard.classList.add('show');
+        renderStats();
+        renderTable();
+      })
+      .catch(() => {
+        loadingState.textContent = 'Could not reach the server. Check your connection and try again.';
+      });
+  }
+
+  function renderStats(){
+    statRow.innerHTML = `
+      <div class="stat-card"><div class="num">${dataStore.abstracts.length}</div><div class="lbl">Abstracts</div></div>
+      <div class="stat-card"><div class="num">${dataStore.registrations.length}</div><div class="lbl">Registrations</div></div>
+    `;
+  }
+
+  function escapeHtml(str){
+    return String(str === undefined || str === null ? '' : str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function formatCell(col, value){
+    if(col === 'Edit Link' && value){
+      return `<a class="cell-link" href="${escapeHtml(value)}" target="_blank" rel="noopener">Open ↗</a>`;
+    }
+    if(col === 'Proof of Payment File URL' && value){
+      return `<a class="cell-link" href="${escapeHtml(value)}" target="_blank" rel="noopener">View ↗</a>`;
+    }
+    if(col === 'Timestamp' && value){
+      const d = new Date(value);
+      const text = isNaN(d) ? String(value) : d.toLocaleString();
+      return `<span class="cell-truncate" title="${escapeHtml(text)}">${escapeHtml(text)}</span>`;
+    }
+    const text = String(value === undefined || value === null ? '' : value);
+    return `<span class="cell-truncate" title="${escapeHtml(text)}">${escapeHtml(text) || '—'}</span>`;
+  }
+
+  function renderTable(){
+    const cols = columnsFor(activeTab);
+    const rows = dataStore[activeTab] || [];
+    const q = searchInput.value.trim().toLowerCase();
+    const filtered = q
+      ? rows.filter(row => cols.some(c => String(row[c] || '').toLowerCase().includes(q)))
+      : rows;
+
+    tableHead.innerHTML = '<tr>' + cols.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr>';
+
+    if(filtered.length === 0){
+      tableBody.innerHTML = '';
+      loadingState.style.display = 'none';
+      emptyState.style.display = 'block';
+      emptyState.textContent = rows.length === 0 ? 'No submissions yet.' : 'No submissions match your search.';
+      return;
+    }
+
+    loadingState.style.display = 'none';
+    emptyState.style.display = 'none';
+    tableBody.innerHTML = filtered.map(row =>
+      '<tr>' + cols.map(c => `<td>${formatCell(c, row[c])}</td>`).join('') + '</tr>'
+    ).join('');
+  }
+
+  function switchTab(tab){
+    activeTab = tab;
+    tabAbstracts.classList.toggle('active', tab === 'abstracts');
+    tabRegistrations.classList.toggle('active', tab === 'registrations');
+    searchInput.value = '';
+    renderTable();
+  }
+
+  function exportCsv(){
+    const cols = columnsFor(activeTab);
+    const rows = dataStore[activeTab] || [];
+    const escapeCsv = v => {
+      const s = String(v === undefined || v === null ? '' : v);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    };
+    const lines = [cols.map(escapeCsv).join(',')].concat(
+      rows.map(row => cols.map(c => escapeCsv(row[c])).join(','))
+    );
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wil-africa-2026-${activeTab}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  gateSubmit.addEventListener('click', function(){
+    adminKey = adminKeyInput.value.trim();
+    if(!adminKey) return;
+    gateError.classList.remove('show');
+    loadData();
+  });
+  adminKeyInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') gateSubmit.click();
+  });
+
+  tabAbstracts.addEventListener('click', () => switchTab('abstracts'));
+  tabRegistrations.addEventListener('click', () => switchTab('registrations'));
+  searchInput.addEventListener('input', renderTable);
+  refreshBtn.addEventListener('click', loadData);
+  exportBtn.addEventListener('click', exportCsv);
+
+  if(adminKey){
+    loadData();
+  }
+</script>
+
+</body>
+</html>
