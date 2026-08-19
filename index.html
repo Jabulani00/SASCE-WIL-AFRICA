@@ -87,6 +87,35 @@
     color:var(--ink-soft);
     font-size:16px;
   }
+  .hero-book{
+    margin-top:24px;
+    display:inline-block;
+    max-width:620px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    box-shadow:var(--shadow);
+  }
+  .hero-book .label{
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .hero-book .title{
+    font-size:18px;
+    font-weight:700;
+    color:var(--navy);
+    line-height:1.35;
+  }
+  .hero-book .isbn{
+    margin-top:4px;
+    font-size:14px;
+    color:var(--ink-soft);
+  }
   .hero-cta{margin-top:32px;display:flex;gap:14px;flex-wrap:wrap;}
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -132,27 +161,38 @@
     grid-template-columns:repeat(3,1fr);
     gap:0;
   }
-  @media (max-width:900px){ .infogrid{grid-template-columns:repeat(2,1fr);} }
   @media (max-width:640px){ .infogrid{grid-template-columns:1fr;} }
   .infocell{
     padding:22px 24px;
+    border-right:1px solid var(--line);
   }
-  @media (min-width:901px){
-    .infocell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);}
-    .infocell:nth-child(3n){border-right:none;}
-    .infocell:nth-last-child(-n+3){border-bottom:none;}
-  }
-  @media (min-width:641px) and (max-width:900px){
-    .infocell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);}
-    .infocell:nth-child(2n){border-right:none;}
-    .infocell:nth-last-child(-n+2){border-bottom:none;}
-  }
+  .infocell:last-child{border-right:none;}
   @media (max-width:640px){
-    .infocell{border-bottom:1px solid var(--line);}
+    .infocell{border-right:none;border-bottom:1px solid var(--line);}
     .infocell:last-child{border-bottom:none;}
   }
   .infocell .label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-deep);font-weight:700;margin-bottom:6px;}
   .infocell .value{font-family:'Roboto',sans-serif;font-size:17px;font-weight:500;line-height:1.3;color:var(--navy);}
+
+  .price-block{background:var(--navy);padding-bottom:4px;}
+  .price-heading{
+    padding:24px 24px 12px;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  .price-heading .price-badge{
+    display:inline-flex;align-items:center;
+    background:var(--gold, #C99115);color:var(--navy-deep);
+    font-family:'Roboto',sans-serif;
+    font-size:15px;font-weight:700;letter-spacing:.02em;
+    padding:6px 16px;border-radius:20px;
+  }
+  .price-heading .price-note{font-size:12.5px;color:#B9C7D1;}
+  .price-block .infocell{border-right:1px solid rgba(255,255,255,0.14);}
+  .price-block .infocell .label{color:#8FD8CE;}
+  .price-block .infocell .value{color:#fff;font-size:19px;font-weight:700;}
+  @media (max-width:640px){
+    .price-block .infocell{border-right:none;border-bottom:1px solid rgba(255,255,255,0.14);}
+  }
 
   /* ---------- SECTION SHARED ---------- */
   section{padding:56px 0;}
@@ -488,6 +528,11 @@
     <div class="eyebrow">29 Sept – 01 Oct 2026 · Johannesburg, South Africa</div>
     <h1>SASCE WIL AFRICA CONFERENCE 2026<br><em>Register to attend</em></h1>
     <p class="hero-sub">Transforming education through Work-Integrated Learning and occupational skills for Africa's development agenda — building future-ready skills ecosystems across higher education, TVET, industry, and government.</p>
+    <div class="hero-book">
+      <div class="label">Conference proceedings</div>
+      <div class="title">SASCE WIL AFRICA Conference Proceedings</div>
+      <div class="isbn">ISBN: 978-1-0483-2979-7 (e-book)</div>
+    </div>
     <div class="hero-cta">
       <a href="#register" class="btn btn-gold">Register now</a>
       <a href="abstract-submission.html" class="btn btn-gold">Submit an abstract</a>
@@ -505,12 +550,23 @@
       </div>
       <div class="infocell">
         <div class="label">Abstract deadline</div>
-        <div class="value">6 August 2026</div>
+        <div class="value">27 August 2026</div>
       </div>
       <div class="infocell">
         <div class="label">Co-hosted by</div>
         <div class="value">Wits School of Education</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="price-block">
+  <div class="wrap">
+    <div class="price-heading">
+      <span class="price-badge">Registration prices</span>
+      <span class="price-note">Select your category when you register below</span>
+    </div>
+    <div class="infogrid">
       <div class="infocell">
         <div class="label">Standard / Non-member</div>
         <div class="value">R14 500</div>
@@ -779,7 +835,7 @@
       <div class="confirm-badge">✓</div>
       <h3>Registration received</h3>
       <p>Thank you — your place for the SASCE WIL AFRICA CONFERENCE 2026 has been recorded below.</p>
-      <p>A confirmation will follow from the organising committee ahead of the abstract submission deadline on 6 August 2026.</p>
+      <p>A confirmation will follow from the organising committee ahead of the abstract submission deadline on 27 August 2026.</p>
       <div class="confirm-summary" id="confirmSummary"></div>
       <div class="edit-link-box">
         <div class="lbl">Need to make changes later?</div>

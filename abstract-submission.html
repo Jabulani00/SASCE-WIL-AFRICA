@@ -262,7 +262,7 @@
 
 <header class="hero">
   <div class="wrap">
-    <div class="eyebrow">Abstract submission deadline · 6 August 2026</div>
+    <div class="eyebrow">Abstract submission deadline · 27 August 2026</div>
     <h1>SASCE WIL AFRICA CONFERENCE 2026<br><em>Submit your abstract</em></h1>
     <p class="hero-sub">Share your research, practice-based innovation, policy initiative, case study, partnership models and tools, or theoretical contribution with the WIL Africa community. All abstracts undergo peer review.</p>
     <a class="backlink" href="index.html">← Back to registration page</a>
@@ -421,11 +421,11 @@
         <span class="hint">Used for programme indexing and reviewer matching, as in most peer-reviewed conference systems.</span>
       </div>
 
-      <div class="field" data-field="abstractText">
-        <label for="abstractText">Abstract text * <span style="font-weight:400;color:var(--ink-soft);">(250–300 words)</span></label>
-        <textarea id="abstractText" name="abstractText" rows="10" placeholder="Structure your abstract with background/context, purpose, approach/methodology, key findings or contribution, and implications for WIL and occupational skills development."></textarea>
-        <span id="wordCount" class="word-count">0 words</span>
-        <span class="error-text">Your abstract must be between 250 and 300 words.</span>
+      <div class="field" data-field="abstractFile" id="abstractFileField">
+        <label for="abstractFile">Abstract file *</label>
+        <input type="file" id="abstractFile" name="abstractFile" accept=".doc,.docx,.pdf,.txt">
+        <span class="hint">Allowed files: DOC, DOCX, PDF, TXT. Maximum file size: 25 MB.</span>
+        <span class="error-text">Please upload your abstract as a DOC, DOCX, PDF, or TXT file.</span>
       </div>
 
       <div class="form-part-title">4 · Additional information</div>
@@ -466,6 +466,13 @@
         </div>
         <p class="note">We've also emailed this link to your corresponding author email address. Anyone with this link can edit this submission, so keep it private.</p>
       </div>
+      <div class="edit-link-box" id="docLinkBox" style="display:none;">
+        <div class="lbl">Abstract document</div>
+        <div class="row">
+          <a id="docLinkAnchor" class="cell-link" href="#" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700;">Open the Google Doc version of your abstract ↗</a>
+        </div>
+        <p class="note">The organising committee's copy of your abstract is also saved as a Google Doc, generated from what you submitted.</p>
+      </div>
       <div class="download-row">
         <button type="button" class="download-btn" id="downloadPdfBtn">⭳ Download confirmation (PDF)</button>
         <span class="form-note">Opens your browser's print dialog — choose "Save as PDF" as the destination.</span>
@@ -504,20 +511,17 @@
   // ===== CONFIGURE AFTER DEPLOYING THE GOOGLE APPS SCRIPT WEB APP =====
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrgmuw5zfTtqfyTAlvaYEU0Q7HiYGte1Lgu11lEKJ3-1F-gFuOzmJLQf6sn2cTkp-otA/exec";
 
-  const abstractTextEl = document.getElementById('abstractText');
-  const wordCountEl = document.getElementById('wordCount');
-  function countWords(str){
-    const trimmed = str.trim();
-    return trimmed.length ? trimmed.split(/\s+/).length : 0;
+  const abstractFileField = document.getElementById('abstractFileField');
+  const abstractFileEl = document.getElementById('abstractFile');
+
+  function fileToBase64(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
-  function syncWordCount(){
-    const n = countWords(abstractTextEl.value);
-    wordCountEl.textContent = n + ' words (target 250–300)';
-    wordCountEl.classList.toggle('ok', n>=250 && n<=300);
-    wordCountEl.classList.toggle('bad', n>0 && (n<250 || n>300));
-  }
-  abstractTextEl.addEventListener('input', syncWordCount);
-  syncWordCount();
 
   const form = document.getElementById('abstractForm');
   const confirmCard = document.getElementById('confirmCard');
@@ -531,6 +535,7 @@
   const urlParams = new URLSearchParams(window.location.search);
   let editId = urlParams.get('edit') || '';
   const pageUrl = window.location.origin + window.location.pathname;
+  let existingAbstractFileUrl = '';
 
   function fillFormFromData(data){
     if(!data) return;
@@ -550,8 +555,11 @@
       if(fmt) fmt.checked = true;
     }
     setIf(form.keywords, data.keywords);
-    setIf(form.abstractText, data.abstractText);
-    syncWordCount();
+    existingAbstractFileUrl = data.abstractFileUrl || '';
+    const hint = abstractFileField.querySelector('.hint');
+    if(existingAbstractFileUrl && hint){
+      hint.innerHTML = `Currently on file: <a href="${existingAbstractFileUrl}" target="_blank" rel="noopener">view uploaded file ↗</a>. Uploading a new file replaces it. Allowed files: DOC, DOCX, PDF, TXT. Maximum file size: 25 MB.`;
+    }
     setIf(form.notes, data.notes);
     if(data.declaration === 'Yes') form.declaration.checked = true;
   }
@@ -606,8 +614,7 @@
     const submissionType = form.submissionType.value;
     const format = form.querySelector('input[name="format"]:checked');
     const keywords = form.keywords.value.trim();
-    const abstractText = form.abstractText.value.trim();
-    const wc = countWords(abstractText);
+    const abstractFile = abstractFileEl.files[0];
     const declaration = form.declaration.checked;
     const keywordCount = keywords.length ? keywords.split(',').map(k=>k.trim()).filter(Boolean).length : 0;
 
@@ -622,7 +629,7 @@
       [form.querySelector('[data-field="submissionType"]'), submissionType.length>0],
       [form.querySelector('[data-field="format"]'), !!format],
       [form.querySelector('[data-field="keywords"]'), keywordCount>=3 && keywordCount<=5],
-      [form.querySelector('[data-field="abstractText"]'), wc>=250 && wc<=300],
+      [form.querySelector('[data-field="abstractFile"]'), !!abstractFile || (!!editId && !!existingAbstractFileUrl)],
       [form.querySelector('[data-field="declaration"]'), declaration],
     ];
     checks.forEach(([el, ok])=>{ setValid(el, ok); if(!ok) valid=false; });
@@ -630,6 +637,12 @@
     if(!valid){
       const firstInvalid = form.querySelector('.invalid');
       if(firstInvalid) firstInvalid.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+
+    if(abstractFile && abstractFile.size > 25*1024*1024){
+      setValid(form.querySelector('[data-field="abstractFile"]'), false);
+      form.querySelector('[data-field="abstractFile"] .error-text').textContent = 'File is too large — maximum 25 MB.';
       return;
     }
 
@@ -644,12 +657,15 @@
       coAuthors: form.coAuthors.value.trim(),
       title, subtheme, submissionType,
       format: format.value,
-      keywords, abstractText, wordCount: wc,
+      keywords,
+      abstractSource: 'file',
       notes: form.notes.value.trim(),
       declaration: declaration ? 'Yes' : 'No'
     };
+    payload.abstractFileName = abstractFile ? abstractFile.name : undefined;
+    payload.abstractFileType = abstractFile ? abstractFile.type : undefined;
 
-    function showConfirmation(submissionId, editUrlFromServer){
+    function showConfirmation(submissionId, editUrlFromServer, docUrlFromServer){
       const summaryRows = [
         ['Title', title],
         ['Corresponding author', corrName],
@@ -658,7 +674,7 @@
         ['Sub-theme', subtheme],
         ['Submission type', submissionType],
         ['Format', format.value],
-        ['Word count', wc],
+        ['Abstract', abstractFile ? abstractFile.name : 'kept previous file on record'],
       ];
       confirmSummary.innerHTML = summaryRows.map(([k,v])=>
         `<div><span>${k}</span><span>${v}</span></div>`
@@ -667,6 +683,11 @@
       const editUrl = editUrlFromServer || (submissionId ? `${pageUrl}?edit=${submissionId}` : '');
       if(editUrl){
         editLinkField.value = editUrl;
+      }
+
+      if(docUrlFromServer){
+        document.getElementById('docLinkAnchor').href = docUrlFromServer;
+        document.getElementById('docLinkBox').style.display = 'block';
       }
 
       const printRows = [
@@ -682,7 +703,7 @@
         ['Submission type', submissionType],
         ['Presentation format', format.value],
         ['Keywords', keywords],
-        ['Word count', wc],
+        ['Abstract', abstractFile ? abstractFile.name : 'kept previous file on record'],
         ['Submitted', new Date().toLocaleString()],
       ];
       document.getElementById('printTable').innerHTML = printRows.map(([k,v])=>
@@ -711,17 +732,24 @@
     submitBtn.disabled = true;
     submitBtn.textContent = editId ? 'Updating…' : 'Submitting…';
 
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
+    const fileStep = abstractFile ? fileToBase64(abstractFile) : Promise.resolve(null);
+
+    fileStep.then(base64 => {
+      if(abstractFile){
+        payload.abstractFileBase64 = base64;
+      }
+      return fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
     })
     .then(res => res.json())
     .then(data => {
       submitBtn.disabled = false;
       submitBtn.textContent = editId ? 'Update abstract' : 'Submit abstract';
       if(data && data.result === 'success'){
-        showConfirmation(data.submissionId, data.editUrl);
+        showConfirmation(data.submissionId, data.editUrl, data.docUrl);
       } else {
         submitError.classList.add('show');
       }

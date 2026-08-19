@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
   :root{
     --navy:#2B4C6F;
@@ -92,28 +94,43 @@
   .btn-sm{
     background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:9px 16px;
     font-size:12.5px;font-weight:700;color:var(--navy);cursor:pointer;transition:all .15s ease;
+    text-decoration:none;display:inline-flex;align-items:center;gap:6px;
   }
   .btn-sm:hover{border-color:var(--navy);}
   .btn-sm.primary{background:var(--blue);border-color:var(--blue);color:#fff;}
   .btn-sm.primary:hover{background:var(--blue-deep);}
 
-  .table-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
-  .table-scroll{overflow-x:auto;max-width:100%;}
-  table{border-collapse:collapse;width:100%;font-size:12.5px;}
-  thead th{
-    background:var(--bg-soft);color:var(--navy);text-align:left;padding:10px 14px;
-    font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:700;
-    white-space:nowrap;border-bottom:1px solid var(--line);position:sticky;top:0;
-  }
-  tbody td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:top;max-width:260px;}
-  tbody tr:hover{background:var(--bg-soft);}
-  tbody tr:last-child td{border-bottom:none;}
-  .cell-truncate{display:block;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .cell-link{color:var(--blue);font-weight:600;text-decoration:none;white-space:nowrap;}
-  .cell-link:hover{text-decoration:underline;}
+  .list-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
   .empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
-
   .loading{padding:60px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
+
+  /* ---------- SUBMISSION CARDS (accordion) ---------- */
+  .sub-card{border-bottom:1px solid var(--line);}
+  .sub-card:last-child{border-bottom:none;}
+  .sub-card-header{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:16px 20px;cursor:pointer;transition:background .1s ease;
+  }
+  .sub-card-header:hover{background:var(--bg-soft);}
+  .sub-card-summary{display:flex;flex-direction:column;gap:4px;min-width:0;}
+  .sub-card-title{font-size:14.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw;}
+  .sub-card-meta{font-size:12.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw;}
+  .sub-card-right{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+  .sub-card-date{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+  .sub-card-badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--teal-deep);background:rgba(0,139,139,0.1);padding:3px 9px;border-radius:20px;white-space:nowrap;}
+  .sub-card-chevron{color:var(--ink-soft);transition:transform .15s ease;font-size:12px;}
+  .sub-card.open .sub-card-chevron{transform:rotate(180deg);}
+  .sub-card-body{display:none;padding:4px 20px 22px;}
+  .sub-card.open .sub-card-body{display:block;}
+
+  .detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px 24px;margin-bottom:18px;}
+  .detail-field{min-width:0;}
+  .detail-field.full{grid-column:1/-1;}
+  .detail-field .dl{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--teal-deep);font-weight:700;margin-bottom:4px;}
+  .detail-field .dv{font-size:13.5px;color:var(--ink);word-break:break-word;}
+  .detail-field .dv.long-text{white-space:pre-wrap;line-height:1.65;background:var(--bg-soft);padding:14px 16px;border-radius:var(--radius);border:1px solid var(--line);}
+
+  .detail-actions{display:flex;gap:10px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--line);}
 </style>
 </head>
 <body>
@@ -147,20 +164,19 @@
     </div>
 
     <div class="toolbar">
-      <div class="search"><input type="search" id="searchInput" placeholder="Search this table…"></div>
+      <div class="search"><input type="search" id="searchInput" placeholder="Search this list…"></div>
       <div class="toolbar-actions">
         <button type="button" class="btn-sm" id="refreshBtn">↻ Refresh</button>
-        <button type="button" class="btn-sm primary" id="exportBtn">⭳ Export CSV</button>
+        <button type="button" class="btn-sm" id="copyListBtn">⧉ Copy names, emails &amp; topics (numbered)</button>
+        <button type="button" class="btn-sm" id="downloadAllWordBtn">⭳ Download all (Word .zip)</button>
+        <button type="button" class="btn-sm" id="downloadAllPdfBtn">⭳ Download all (PDF .zip)</button>
+        <button type="button" class="btn-sm primary" id="exportBtn">⭳ Export CSV (all columns)</button>
       </div>
     </div>
+    <p style="font-size:11.5px;color:var(--ink-soft);margin:-6px 0 16px;">"Copy" and "Download all" apply to whatever's currently shown below — narrow it with search first if you only want a subset.</p>
 
-    <div class="table-card">
-      <div class="table-scroll">
-        <table id="dataTable">
-          <thead id="tableHead"></thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
+    <div class="list-card">
+      <div id="cardList"></div>
       <div class="loading" id="loadingState">Loading submissions…</div>
       <div class="empty-state" id="emptyState" style="display:none;">No submissions match your search.</div>
     </div>
@@ -188,13 +204,15 @@
   const gateSubmit = document.getElementById('gateSubmit');
 
   const statRow = document.getElementById('statRow');
-  const tableHead = document.getElementById('tableHead');
-  const tableBody = document.getElementById('tableBody');
+  const cardList = document.getElementById('cardList');
   const loadingState = document.getElementById('loadingState');
   const emptyState = document.getElementById('emptyState');
   const searchInput = document.getElementById('searchInput');
   const refreshBtn = document.getElementById('refreshBtn');
   const exportBtn = document.getElementById('exportBtn');
+  const copyListBtn = document.getElementById('copyListBtn');
+  const downloadAllWordBtn = document.getElementById('downloadAllWordBtn');
+  const downloadAllPdfBtn = document.getElementById('downloadAllPdfBtn');
   const tabAbstracts = document.getElementById('tabAbstracts');
   const tabRegistrations = document.getElementById('tabRegistrations');
 
@@ -202,13 +220,16 @@
   let dataStore = { abstracts: [], registrations: [] };
   let activeTab = 'abstracts';
 
-  const ABSTRACT_COLUMNS = [
+  // Full column sets (used for CSV export — every column the sheet has, including
+  // legacy ones that are always blank on the live form).
+  const FULL_ABSTRACT_COLUMNS = [
     'Timestamp','Submission ID','Edit Link','Corresponding author','Email','Phone','Country',
     'Institution','Role','ORCID iD','Co-authors','Abstract title','Sub-theme','Submission type',
     'Presentation format','Keywords','Abstract text','Word count','Ethical clearance',
-    'Funding / acknowledgements','Attendance mode','Journal interest','Notes','Declaration accepted'
+    'Funding / acknowledgements','Attendance mode','Journal interest','Notes','Declaration accepted',
+    'Abstract document','Abstract source'
   ];
-  const REGISTRATION_COLUMNS = [
+  const FULL_REGISTRATION_COLUMNS = [
     'Timestamp','Submission ID','Edit Link','Email','Title','Name and Surname','Institution Organisation',
     'Designation Position','Official Address','Office Telephone Number','Official Email','Cellphone Number',
     'Research Publishing Workshop Attendance','4IR CoE WIL Site Visit Attendance','Hotel Arrival Time',
@@ -219,14 +240,37 @@
     'Subtheme Breakaway or Workshop','Plenary Theme Paper','Registration Fee Category'
   ];
 
-  function columnsFor(tab){ return tab === 'abstracts' ? ABSTRACT_COLUMNS : REGISTRATION_COLUMNS; }
+  // Curated columns actually shown on screen — drops legacy/always-blank fields
+  // (ORCID iD, Ethical clearance, Funding, Attendance mode, Journal interest for
+  // abstracts; Official Address, Research Publishing Workshop, Hotel Arrival Time,
+  // Poster/Plenary Presentation for registrations, since the live forms no longer
+  // collect these).
+  const ABSTRACT_DETAIL_COLUMNS = [
+    'Corresponding author','Email','Phone','Country','Institution','Role','Co-authors',
+    'Abstract title','Sub-theme','Submission type','Presentation format','Keywords',
+    'Word count','Abstract text','Notes','Declaration accepted','Timestamp'
+  ];
+  const ABSTRACT_LONG_TEXT_COLUMNS = ['Abstract text','Co-authors','Notes'];
+
+  const REGISTRATION_DETAIL_COLUMNS = [
+    'Name and Surname','Title','Email','Official Email','Office Telephone Number','Cellphone Number',
+    'Institution Organisation','Designation Position',
+    'Pre-conference Programme Attendance','Open Poster/Exhibition','Subtheme Breakaway or Workshop',
+    'Plenary Theme Paper','Registration Fee Category',
+    'Payment Confirmation Available','Payment Reference Number','Payment Date',
+    'Proof of Payment File URL','Timestamp'
+  ];
+  const REGISTRATION_LONG_TEXT_COLUMNS = [];
+
+  function detailColumnsFor(tab){ return tab === 'abstracts' ? ABSTRACT_DETAIL_COLUMNS : REGISTRATION_DETAIL_COLUMNS; }
+  function longColumnsFor(tab){ return tab === 'abstracts' ? ABSTRACT_LONG_TEXT_COLUMNS : REGISTRATION_LONG_TEXT_COLUMNS; }
+  function fullColumnsFor(tab){ return tab === 'abstracts' ? FULL_ABSTRACT_COLUMNS : FULL_REGISTRATION_COLUMNS; }
 
   function loadData(){
     loadingState.style.display = 'block';
     loadingState.textContent = 'Loading submissions…';
     emptyState.style.display = 'none';
-    tableBody.innerHTML = '';
-    tableHead.innerHTML = '';
+    cardList.innerHTML = '';
 
     fetch(`${SCRIPT_URL}?action=admin&key=${encodeURIComponent(adminKey)}`)
       .then(res => res.json())
@@ -245,7 +289,7 @@
         gate.style.display = 'none';
         dashboard.classList.add('show');
         renderStats();
-        renderTable();
+        renderList();
       })
       .catch(() => {
         loadingState.textContent = 'Could not reach the server. Check your connection and try again.';
@@ -264,34 +308,79 @@
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  function formatCell(col, value){
-    if(col === 'Edit Link' && value){
-      return `<a class="cell-link" href="${escapeHtml(value)}" target="_blank" rel="noopener">Open ↗</a>`;
-    }
-    if(col === 'Proof of Payment File URL' && value){
-      return `<a class="cell-link" href="${escapeHtml(value)}" target="_blank" rel="noopener">View ↗</a>`;
-    }
-    if(col === 'Timestamp' && value){
-      const d = new Date(value);
-      const text = isNaN(d) ? String(value) : d.toLocaleString();
-      return `<span class="cell-truncate" title="${escapeHtml(text)}">${escapeHtml(text)}</span>`;
-    }
-    const text = String(value === undefined || value === null ? '' : value);
-    return `<span class="cell-truncate" title="${escapeHtml(text)}">${escapeHtml(text) || '—'}</span>`;
+  function fieldsFor(tab, row){
+    const cols = detailColumnsFor(tab);
+    const longCols = longColumnsFor(tab);
+    return cols.map(c => ({ label: c, value: row[c], long: longCols.indexOf(c) !== -1 }));
   }
 
-  function renderTable(){
-    const cols = columnsFor(activeTab);
+  function renderDetailBody(tab, row){
+    const fields = fieldsFor(tab, row);
+    const gridHtml = fields.map(f => {
+      const val = (f.value === undefined || f.value === null || f.value === '') ? '—' : String(f.value);
+      let valHtml;
+      if(f.label === 'Proof of Payment File URL' && f.value){
+        valHtml = `<a class="btn-sm" href="${escapeHtml(f.value)}" target="_blank" rel="noopener">View file ↗</a>`;
+      } else {
+        valHtml = escapeHtml(val);
+      }
+      const cls = f.long ? 'detail-field full' : 'detail-field';
+      const valCls = f.long ? 'dv long-text' : 'dv';
+      return `<div class="${cls}"><div class="dl">${escapeHtml(f.label)}</div><div class="${valCls}">${valHtml}</div></div>`;
+    }).join('');
+
+    const isAbstract = tab === 'abstracts';
+    const isFileAbstract = isAbstract && row['Abstract source'] === 'file';
+    const abstractDocUrl = row['Abstract document'] || '';
+    const editUrl = row['Edit Link'] || '';
+
+    const actions = [];
+    actions.push('<button type="button" class="btn-sm" data-action="word">⭳ Word (.doc)</button>');
+    actions.push('<button type="button" class="btn-sm" data-action="pdf">⭳ PDF</button>');
+    actions.push('<button type="button" class="btn-sm" data-action="txt">⭳ Text (.txt)</button>');
+    if(isFileAbstract && abstractDocUrl){
+      actions.push(`<a class="btn-sm primary" href="${escapeHtml(abstractDocUrl)}" target="_blank" rel="noopener">⭳ Download uploaded file (Drive) ↗</a>`);
+    } else if(isAbstract && abstractDocUrl){
+      actions.push(`<a class="btn-sm" href="${escapeHtml(abstractDocUrl)}" target="_blank" rel="noopener">Open generated Doc ↗</a>`);
+    }
+    if(editUrl){
+      actions.push(`<a class="btn-sm" href="${escapeHtml(editUrl)}" target="_blank" rel="noopener">Open edit link ↗</a>`);
+    }
+
+    return `<div class="detail-grid">${gridHtml}</div><div class="detail-actions">${actions.join('')}</div>`;
+  }
+
+  function summaryFor(tab, row){
+    const isAbstract = tab === 'abstracts';
+    const title = isAbstract ? (row['Abstract title'] || 'Untitled abstract') : (row['Name and Surname'] || 'Unnamed registrant');
+    const metaParts = isAbstract
+      ? [row['Corresponding author'], row['Institution'], row['Sub-theme']]
+      : [row['Institution Organisation'], row['Registration Fee Category']];
+    const meta = metaParts.filter(Boolean).join(' · ');
+    const badge = isAbstract ? (row['Abstract source'] === 'file' ? 'Uploaded file' : 'Typed text') : '';
+    const ts = row['Timestamp'];
+    const d = ts ? new Date(ts) : null;
+    const dateText = d && !isNaN(d) ? d.toLocaleDateString() : '';
+    return { title, meta, badge, dateText };
+  }
+
+  // Same filter renderList uses — shared so "Copy" / "Download all" act on
+  // exactly what's currently visible (narrow with search to get a subset).
+  function getFilteredRows(){
     const rows = dataStore[activeTab] || [];
     const q = searchInput.value.trim().toLowerCase();
-    const filtered = q
-      ? rows.filter(row => cols.some(c => String(row[c] || '').toLowerCase().includes(q)))
+    const searchCols = detailColumnsFor(activeTab);
+    return q
+      ? rows.filter(row => searchCols.some(c => String(row[c] || '').toLowerCase().includes(q)))
       : rows;
+  }
 
-    tableHead.innerHTML = '<tr>' + cols.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr>';
+  function renderList(){
+    const rows = dataStore[activeTab] || [];
+    const filtered = getFilteredRows();
 
     if(filtered.length === 0){
-      tableBody.innerHTML = '';
+      cardList.innerHTML = '';
       loadingState.style.display = 'none';
       emptyState.style.display = 'block';
       emptyState.textContent = rows.length === 0 ? 'No submissions yet.' : 'No submissions match your search.';
@@ -300,9 +389,387 @@
 
     loadingState.style.display = 'none';
     emptyState.style.display = 'none';
-    tableBody.innerHTML = filtered.map(row =>
-      '<tr>' + cols.map(c => `<td>${formatCell(c, row[c])}</td>`).join('') + '</tr>'
+
+    cardList.innerHTML = filtered.map((row, i) => {
+      const s = summaryFor(activeTab, row);
+      return `
+        <div class="sub-card" data-index="${i}">
+          <div class="sub-card-header">
+            <div class="sub-card-summary">
+              <div class="sub-card-title">${escapeHtml(s.title)}</div>
+              <div class="sub-card-meta">${escapeHtml(s.meta)}</div>
+            </div>
+            <div class="sub-card-right">
+              ${s.badge ? `<span class="sub-card-badge">${escapeHtml(s.badge)}</span>` : ''}
+              <span class="sub-card-date">${escapeHtml(s.dateText)}</span>
+              <span class="sub-card-chevron">▾</span>
+            </div>
+          </div>
+          <div class="sub-card-body"></div>
+        </div>
+      `;
+    }).join('');
+
+    [...cardList.querySelectorAll('.sub-card')].forEach((card, idx) => {
+      const row = filtered[idx];
+      const header = card.querySelector('.sub-card-header');
+      const body = card.querySelector('.sub-card-body');
+      header.addEventListener('click', () => {
+        const isOpen = card.classList.contains('open');
+        if(!isOpen && !body.dataset.rendered){
+          body.innerHTML = renderDetailBody(activeTab, row);
+          body.dataset.rendered = '1';
+          wireDownloadButtons(body, row);
+        }
+        card.classList.toggle('open', !isOpen);
+      });
+    });
+  }
+
+  function fileBaseName(tab, row){
+    const raw = tab === 'abstracts'
+      ? (row['Abstract title'] || row['Corresponding author'] || 'abstract')
+      : (row['Name and Surname'] || 'registration');
+    const slug = String(raw).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);
+    return slug || (tab === 'abstracts' ? 'abstract' : 'registration');
+  }
+
+  // "Name, Affiliation, Email" per line -> [{name, affiliation}]. Mirrors
+  // parseCoAuthors_ in Code.gs so downloads here match the generated Doc.
+  function parseCoAuthors(text){
+    if(!text) return [];
+    return String(text).split('\n').map(line => {
+      line = line.trim();
+      if(!line) return null;
+      const parts = line.split(',');
+      const name = (parts.shift() || '').trim();
+      const affiliation = parts.join(',').trim();
+      return { name: name || 'Unnamed author', affiliation };
+    }).filter(Boolean);
+  }
+
+  // Builds the numbered author line + affiliation list, matching the standard
+  // conference-abstract format (superscript markers shared by co-authors from
+  // the same institution) — same convention as generateAbstractDoc_ in Code.gs.
+  function buildAuthorBlockHtml(row){
+    const authors = [{ name: row['Corresponding author'] || 'Unnamed author', affiliation: row['Institution'] || '' }]
+      .concat(parseCoAuthors(row['Co-authors']));
+    const affiliationNumber = {};
+    const affiliationList = [];
+    authors.forEach(a => {
+      const aff = a.affiliation || 'Affiliation not provided';
+      if(!affiliationNumber[aff]){
+        affiliationList.push(aff);
+        affiliationNumber[aff] = affiliationList.length;
+      }
+    });
+    const authorLine = authors.map((a, i) => {
+      const sep = i === 0 ? '' : (i === authors.length - 1 ? ' and ' : ', ');
+      const num = affiliationNumber[a.affiliation || 'Affiliation not provided'];
+      return `${sep}${escapeHtml(a.name)}<sup>${num}</sup>`;
+    }).join('');
+    const affiliationLines = affiliationList.map((aff, i) =>
+      `<div style="font-size:12px;color:#2A2A2A;"><sup>${i+1}</sup>${escapeHtml(aff)}</div>`
     ).join('');
+    return `<div style="font-size:13px;color:#2A2A2A;margin-bottom:4px;">${authorLine}</div>${affiliationLines}`;
+  }
+
+  function buildSubmissionHtml(tab, row){
+    if(tab === 'abstracts'){
+      const title = row['Abstract title'] || 'Untitled abstract';
+      const isFileAbstract = row['Abstract source'] === 'file';
+      const bodyText = isFileAbstract
+        ? '(Abstract provided as an uploaded file — see the file link in the admin dashboard.)'
+        : (row['Abstract text'] || '');
+      const metaRows = [
+        ['Email', row['Email']], ['Country', row['Country']], ['Role', row['Role']],
+        ['Sub-theme', row['Sub-theme']], ['Submission type', row['Submission type']],
+        ['Presentation format', row['Presentation format']], ['Word count', row['Word count']],
+        ['Notes', row['Notes']]
+      ].filter(([,v]) => v !== undefined && v !== null && v !== '');
+      const metaHtml = metaRows.map(([k,v]) =>
+        `<div style="font-size:9.5px;color:#2A2A2A;margin-bottom:3px;"><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v))}</div>`
+      ).join('');
+      return `
+        <div style="font-family:Arial,Helvetica,sans-serif;max-width:760px;margin:0 auto;padding:24px;">
+          <div style="font-size:14px;font-weight:700;color:#111;margin-bottom:10px;">${escapeHtml(title)}</div>
+          ${buildAuthorBlockHtml(row)}
+          <div style="font-size:14px;font-weight:700;color:#111;margin-top:18px;margin-bottom:8px;">Abstract</div>
+          <div style="font-size:12.5px;color:#2A2A2A;text-align:justify;line-height:1.6;">${escapeHtml(bodyText)}</div>
+          ${row['Keywords'] ? `<div style="font-size:12.5px;color:#2A2A2A;margin-top:12px;"><strong>Keywords:</strong> ${escapeHtml(row['Keywords'])}</div>` : ''}
+          <hr style="margin:22px 0;border:none;border-top:1px solid #D3D9DE;">
+          <div style="font-size:10px;font-weight:700;color:#2A2A2A;margin-bottom:6px;">Submission details</div>
+          ${metaHtml}
+          <div style="margin-top:20px;font-size:11px;color:#5B6670;text-align:center;">Generated ${escapeHtml(new Date().toLocaleString())} · SASCE WIL Africa Conference 2026</div>
+        </div>
+      `;
+    }
+
+    const title = row['Name and Surname'] || 'Registration';
+    const subtitle = 'SASCE WIL Africa Conference 2026 — Registration';
+    const fields = fieldsFor(tab, row);
+    const rowsHtml = fields.map(f => {
+      const val = (f.value === undefined || f.value === null || f.value === '') ? '—' : String(f.value);
+      return `<tr><td style="padding:9px 12px;border-bottom:1px solid #D3D9DE;color:#5B6670;font-weight:600;width:32%;vertical-align:top;font-size:12.5px;">${escapeHtml(f.label)}</td><td style="padding:9px 12px;border-bottom:1px solid #D3D9DE;color:#2A2A2A;white-space:pre-wrap;font-size:12.5px;">${escapeHtml(val)}</td></tr>`;
+    }).join('');
+    return `
+      <div style="font-family:Arial,Helvetica,sans-serif;max-width:760px;margin:0 auto;padding:24px;">
+        <div style="border-bottom:3px solid #2B4C6F;padding-bottom:14px;margin-bottom:20px;">
+          <div style="font-size:20px;font-weight:700;color:#2B4C6F;">${escapeHtml(title)}</div>
+          <div style="font-size:13px;color:#5B6670;margin-top:4px;">${escapeHtml(subtitle)}</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">${rowsHtml}</table>
+        <div style="margin-top:24px;font-size:11px;color:#5B6670;text-align:center;">Generated ${escapeHtml(new Date().toLocaleString())} · SASCE WIL Africa Conference 2026</div>
+      </div>
+    `;
+  }
+
+  function triggerDownload(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadWord(tab, row){
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8"><title>${escapeHtml(fileBaseName(tab, row))}</title></head>
+      <body>${buildSubmissionHtml(tab, row)}</body></html>`;
+    const blob = new Blob(['﻿', html], { type: 'application/msword' });
+    triggerDownload(blob, `${fileBaseName(tab, row)}.doc`);
+  }
+
+  function buildSubmissionLines(tab, row){
+    let lines;
+    if(tab === 'abstracts'){
+      const title = row['Abstract title'] || 'Untitled abstract';
+      const authors = [{ name: row['Corresponding author'] || 'Unnamed author', affiliation: row['Institution'] || '' }]
+        .concat(parseCoAuthors(row['Co-authors']));
+      const affiliationNumber = {};
+      const affiliationList = [];
+      authors.forEach(a => {
+        const aff = a.affiliation || 'Affiliation not provided';
+        if(!affiliationNumber[aff]){ affiliationList.push(aff); affiliationNumber[aff] = affiliationList.length; }
+      });
+      const authorLine = authors.map((a, i) => {
+        const sep = i === 0 ? '' : (i === authors.length - 1 ? ' and ' : ', ');
+        return `${sep}${a.name}${toSuperscriptDigits(affiliationNumber[a.affiliation || 'Affiliation not provided'])}`;
+      }).join('');
+      const isFileAbstract = row['Abstract source'] === 'file';
+      const bodyText = isFileAbstract
+        ? '(Abstract provided as an uploaded file — see the file link in the admin dashboard.)'
+        : (row['Abstract text'] || '');
+
+      lines = [title, authorLine];
+      affiliationList.forEach((aff, i) => lines.push(toSuperscriptDigits(i+1) + aff));
+      lines.push('');
+      lines.push('Abstract');
+      lines.push(bodyText);
+      if(row['Keywords']){ lines.push(''); lines.push('Keywords: ' + row['Keywords']); }
+      lines.push('');
+      lines.push('-'.repeat(60));
+      lines.push('Submission details');
+      [['Email', row['Email']], ['Country', row['Country']], ['Role', row['Role']],
+       ['Sub-theme', row['Sub-theme']], ['Submission type', row['Submission type']],
+       ['Presentation format', row['Presentation format']], ['Word count', row['Word count']],
+       ['Notes', row['Notes']]].forEach(([k,v]) => {
+        if(v !== undefined && v !== null && v !== '') lines.push(`${k}: ${v}`);
+      });
+    } else {
+      const title = row['Name and Surname'] || 'Registration';
+      const subtitle = 'SASCE WIL Africa Conference 2026 — Registration';
+      const fields = fieldsFor(tab, row);
+      lines = [title, subtitle, '='.repeat(60), ''];
+      fields.forEach(f => {
+        const val = (f.value === undefined || f.value === null || f.value === '') ? '—' : String(f.value);
+        lines.push(f.label + ':');
+        lines.push(val);
+        lines.push('');
+      });
+    }
+    return lines;
+  }
+
+  function downloadTxt(tab, row){
+    const lines = buildSubmissionLines(tab, row);
+    lines.push('');
+    lines.push('Generated ' + new Date().toLocaleString());
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8;' });
+    triggerDownload(blob, `${fileBaseName(tab, row)}.txt`);
+  }
+
+  function toSuperscriptDigits(n){
+    const map = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+    return String(n).split('').map(d => map[d] || d).join('');
+  }
+
+  function downloadPdf(tab, row){
+    const w = window.open('', '_blank');
+    if(!w){ alert('Please allow pop-ups for this site to download as PDF.'); return; }
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(fileBaseName(tab, row))}</title></head><body>${buildSubmissionHtml(tab, row)}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { w.print(); }, 300);
+  }
+
+  function wireDownloadButtons(container, row){
+    const tab = activeTab;
+    container.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-action');
+        if(action === 'word') downloadWord(tab, row);
+        if(action === 'pdf') downloadPdf(tab, row);
+        if(action === 'txt') downloadTxt(tab, row);
+      });
+    });
+  }
+
+  // ---------- BULK ACTIONS (act on the currently filtered/visible list) ----------
+
+  function zipIndex(n, total){
+    return String(n).padStart(String(total).length, '0');
+  }
+
+  // Renders one submission as a real PDF page (title/authors/abstract/keywords,
+  // then a "Submission details" footer) using jsPDF's text layout — no headless
+  // browser or canvas rendering needed, so it stays reliable in a static page.
+  function buildPdfBlobForSubmission(tab, row){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const marginX = 48;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const maxWidth = pageWidth - marginX * 2;
+    let y = 56;
+
+    function addWrapped(text, fontSize, bold, spacingAfter){
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(fontSize);
+      const lines = doc.splitTextToSize(String(text), maxWidth);
+      lines.forEach(line => {
+        if(y > pageHeight - 56){ doc.addPage(); y = 56; }
+        doc.text(line, marginX, y);
+        y += fontSize * 1.35;
+      });
+      y += spacingAfter || 0;
+    }
+
+    if(tab === 'abstracts'){
+      addWrapped(row['Abstract title'] || 'Untitled abstract', 14, true, 6);
+      const authors = [{ name: row['Corresponding author'] || 'Unnamed author', affiliation: row['Institution'] || '' }]
+        .concat(parseCoAuthors(row['Co-authors']));
+      const affiliationNumber = {};
+      const affiliationList = [];
+      authors.forEach(a => {
+        const aff = a.affiliation || 'Affiliation not provided';
+        if(!affiliationNumber[aff]){ affiliationList.push(aff); affiliationNumber[aff] = affiliationList.length; }
+      });
+      const authorLine = authors.map((a, i) =>
+        `${i === 0 ? '' : (i === authors.length - 1 ? ' and ' : ', ')}${a.name}${affiliationNumber[a.affiliation || 'Affiliation not provided']}`
+      ).join('');
+      addWrapped(authorLine, 10.5, false, 2);
+      affiliationList.forEach((aff, i) => addWrapped(`${i+1}${aff}`, 9, false, 0));
+      y += 8;
+      addWrapped('Abstract', 12, true, 4);
+      const isFileAbstract = row['Abstract source'] === 'file';
+      const bodyText = isFileAbstract
+        ? '(Abstract provided as an uploaded file — see the file link in the admin dashboard.)'
+        : (row['Abstract text'] || '');
+      addWrapped(bodyText, 10.5, false, 8);
+      if(row['Keywords']) addWrapped('Keywords: ' + row['Keywords'], 10, false, 10);
+      y += 4;
+      doc.setDrawColor(200);
+      doc.line(marginX, y, pageWidth - marginX, y);
+      y += 16;
+      addWrapped('Submission details', 9, true, 4);
+      [['Email', row['Email']], ['Country', row['Country']], ['Role', row['Role']],
+       ['Sub-theme', row['Sub-theme']], ['Submission type', row['Submission type']],
+       ['Presentation format', row['Presentation format']], ['Word count', row['Word count']],
+       ['Notes', row['Notes']]].forEach(([k, v]) => {
+        if(v !== undefined && v !== null && v !== '') addWrapped(`${k}: ${v}`, 8.5, false, 2);
+      });
+    } else {
+      addWrapped(row['Name and Surname'] || 'Registration', 14, true, 4);
+      addWrapped('SASCE WIL Africa Conference 2026 — Registration', 10, false, 10);
+      fieldsFor(tab, row).forEach(f => {
+        const val = (f.value === undefined || f.value === null || f.value === '') ? '—' : String(f.value);
+        addWrapped(`${f.label}: ${val}`, 9.5, false, 4);
+      });
+    }
+
+    addWrapped('Generated ' + new Date().toLocaleString(), 8, false, 0);
+    return doc.output('blob');
+  }
+
+  function downloadAllWord(){
+    const tab = activeTab;
+    const rows = getFilteredRows();
+    if(rows.length === 0){ alert('No submissions to download.'); return; }
+    if(typeof JSZip === 'undefined'){ alert('Could not load the ZIP library — check your connection and try again.'); return; }
+    downloadAllWordBtn.disabled = true;
+    downloadAllWordBtn.textContent = 'Zipping…';
+    const zip = new JSZip();
+    rows.forEach((row, i) => {
+      const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="utf-8"><title>${escapeHtml(fileBaseName(tab, row))}</title></head>
+        <body>${buildSubmissionHtml(tab, row)}</body></html>`;
+      zip.file(`${zipIndex(i+1, rows.length)} - ${fileBaseName(tab, row)}.doc`, '﻿' + html);
+    });
+    zip.generateAsync({ type: 'blob' }).then(blob => {
+      triggerDownload(blob, `wil-africa-2026-${tab}-word-${rows.length}.zip`);
+      downloadAllWordBtn.disabled = false;
+      downloadAllWordBtn.textContent = '⭳ Download all (Word .zip)';
+    });
+  }
+
+  function downloadAllPdf(){
+    const tab = activeTab;
+    const rows = getFilteredRows();
+    if(rows.length === 0){ alert('No submissions to download.'); return; }
+    if(typeof JSZip === 'undefined' || !window.jspdf){ alert('Could not load the PDF library — check your connection and try again.'); return; }
+    downloadAllPdfBtn.disabled = true;
+    downloadAllPdfBtn.textContent = 'Zipping…';
+    const zip = new JSZip();
+    rows.forEach((row, i) => {
+      const blob = buildPdfBlobForSubmission(tab, row);
+      zip.file(`${zipIndex(i+1, rows.length)} - ${fileBaseName(tab, row)}.pdf`, blob);
+    });
+    zip.generateAsync({ type: 'blob' }).then(blob => {
+      triggerDownload(blob, `wil-africa-2026-${tab}-pdf-${rows.length}.zip`);
+      downloadAllPdfBtn.disabled = false;
+      downloadAllPdfBtn.textContent = '⭳ Download all (PDF .zip)';
+    });
+  }
+
+  function copyNamesEmailsTopics(){
+    const tab = activeTab;
+    const rows = getFilteredRows();
+    if(rows.length === 0){ alert('No submissions to copy.'); return; }
+    const isAbstract = tab === 'abstracts';
+    const header = isAbstract ? '#\tName\tEmail\tAbstract Title' : '#\tName\tEmail\tInstitution';
+    const lines = rows.map((row, i) => {
+      const name = isAbstract ? (row['Corresponding author'] || '') : (row['Name and Surname'] || '');
+      const email = isAbstract ? (row['Email'] || '') : (row['Official Email'] || row['Email'] || '');
+      const topic = isAbstract ? (row['Abstract title'] || '') : (row['Institution Organisation'] || '');
+      return `${i+1}\t${name}\t${email}\t${topic}`;
+    });
+    const text = [header].concat(lines).join('\n');
+    const restoreLabel = '⧉ Copy names, emails & topics (numbered)';
+    const onCopied = () => {
+      copyListBtn.textContent = `✓ Copied ${rows.length}!`;
+      setTimeout(() => { copyListBtn.textContent = restoreLabel; }, 1800);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(onCopied).catch(() => {
+        alert('Could not copy automatically. Select and copy manually:\n\n' + text);
+      });
+    } else {
+      alert('Could not copy automatically. Select and copy manually:\n\n' + text);
+    }
   }
 
   function switchTab(tab){
@@ -310,11 +777,11 @@
     tabAbstracts.classList.toggle('active', tab === 'abstracts');
     tabRegistrations.classList.toggle('active', tab === 'registrations');
     searchInput.value = '';
-    renderTable();
+    renderList();
   }
 
   function exportCsv(){
-    const cols = columnsFor(activeTab);
+    const cols = fullColumnsFor(activeTab);
     const rows = dataStore[activeTab] || [];
     const escapeCsv = v => {
       const s = String(v === undefined || v === null ? '' : v);
@@ -324,14 +791,7 @@
       rows.map(row => cols.map(c => escapeCsv(row[c])).join(','))
     );
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `wil-africa-2026-${activeTab}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    triggerDownload(blob, `wil-africa-2026-${activeTab}.csv`);
   }
 
   gateSubmit.addEventListener('click', function(){
@@ -346,9 +806,12 @@
 
   tabAbstracts.addEventListener('click', () => switchTab('abstracts'));
   tabRegistrations.addEventListener('click', () => switchTab('registrations'));
-  searchInput.addEventListener('input', renderTable);
+  searchInput.addEventListener('input', renderList);
   refreshBtn.addEventListener('click', loadData);
   exportBtn.addEventListener('click', exportCsv);
+  copyListBtn.addEventListener('click', copyNamesEmailsTopics);
+  downloadAllWordBtn.addEventListener('click', downloadAllWord);
+  downloadAllPdfBtn.addEventListener('click', downloadAllPdf);
 
   if(adminKey){
     loadData();
