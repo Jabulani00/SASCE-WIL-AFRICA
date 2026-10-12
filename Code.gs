@@ -196,6 +196,56 @@ function findRowById_(sheet, headers, id) {
   return -1;
 }
 
+function normalizeEmail_(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+// Returns the first data row whose Email matches, skipping excludeId so an
+// edit of that same submission is allowed. Does not write to the sheet.
+function findRowByEmail_(sheet, headers, email, excludeId) {
+  var emailCol = headers.indexOf('Email') + 1;
+  var idCol = headers.indexOf('Submission ID') + 1;
+  if (emailCol === 0) return -1;
+  var target = normalizeEmail_(email);
+  if (!target) return -1;
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  var width = Math.max(emailCol, idCol);
+  var values = sheet.getRange(2, 1, lastRow - 1, width).getValues();
+  var skipId = excludeId ? String(excludeId) : '';
+  for (var i = 0; i < values.length; i++) {
+    var rowEmail = normalizeEmail_(values[i][emailCol - 1]);
+    var rowId = idCol > 0 ? String(values[i][idCol - 1] || '') : '';
+    if (rowEmail === target && rowId !== skipId) return i + 2;
+  }
+  return -1;
+}
+
+function assertEmailAvailable_(sheet, headers, email, excludeId, duplicateMessage) {
+  if (!normalizeEmail_(email)) {
+    throw new Error('An email address is required.');
+  }
+  if (findRowByEmail_(sheet, headers, email, excludeId) !== -1) {
+    throw new Error(duplicateMessage);
+  }
+}
+
+function submissionIdAtRow_(sheet, headers, rowNum) {
+  var idCol = headers.indexOf('Submission ID') + 1;
+  if (idCol === 0 || rowNum < 2) return '';
+  return String(sheet.getRange(rowNum, idCol).getValue() || '');
+}
+
+function withScriptLock_(fn) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    return fn();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function sheetToObjects_(sheet, headers) {
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
@@ -378,6 +428,7 @@ function sendEditEmail_(email, editUrl, kind) {
 }
 
 function upsertAbstract_(data) {
+  return withScriptLock_(function () {
   var sheet = getSheet_(ABSTRACTS_SHEET_NAME, ABSTRACT_HEADERS);
   var isEdit = !!data.editId;
   var id = data.editId || Utilities.getUuid();
@@ -393,6 +444,14 @@ function upsertAbstract_(data) {
     var existingRawValue = sheet.getRange(rowNum, idxRaw).getValue();
     try { existingRaw = JSON.parse(existingRawValue) || {}; } catch (err) { /* ignore malformed legacy row */ }
   }
+
+  assertEmailAvailable_(
+    sheet,
+    ABSTRACT_HEADERS,
+    data.corrEmail,
+    isEdit ? data.editId : '',
+    'An abstract has already been submitted with this email. Use the edit link from your confirmation email to update it.'
+  );
 
   var docUrl, docId;
   if (isFileSource) {
@@ -429,19 +488,45 @@ function upsertAbstract_(data) {
     sendEditEmail_(data.corrEmail, editUrl, 'abstract');
   }
   return { id: id, editUrl: editUrl, docUrl: docUrl };
+  });
 }
 
 function upsertRegistration_(data) {
+  return withScriptLock_(function () {
   var sheet = getSheet_(REGISTRATIONS_SHEET_NAME, REGISTRATION_HEADERS);
+  // A new registration whose email is already on the sheet updates that row
+  // instead of adding another one. An edit link still updates its own row.
+  var existingEmailRow = -1;
+  if (!data.editId) {
+    existingEmailRow = findRowByEmail_(sheet, REGISTRATION_HEADERS, data.regEmail, '');
+    if (existingEmailRow !== -1) {
+      data.editId = submissionIdAtRow_(sheet, REGISTRATION_HEADERS, existingEmailRow) || Utilities.getUuid();
+    }
+  }
   var isEdit = !!data.editId;
   var id = data.editId || Utilities.getUuid();
   var editUrl = buildEditUrl_(data.pageUrl, id);
+
+  if (isEdit && existingEmailRow === -1 && findRowById_(sheet, REGISTRATION_HEADERS, data.editId) === -1) {
+    throw new Error('Submission not found for the given edit link.');
+  }
+  if (existingEmailRow === -1) {
+    assertEmailAvailable_(
+      sheet,
+      REGISTRATION_HEADERS,
+      data.regEmail,
+      isEdit ? data.editId : '',
+      'A registration has already been submitted with this email. Use the edit link from your confirmation email to update it.'
+    );
+  }
 
   var proofUrl = '';
   if (data.proofOfPaymentBase64) {
     proofUrl = saveProofOfPayment_(data.proofOfPaymentBase64, data.proofOfPaymentName, data.proofOfPaymentType);
   } else if (isEdit) {
-    var existingRowNum = findRowById_(sheet, REGISTRATION_HEADERS, data.editId);
+    var existingRowNum = existingEmailRow !== -1
+      ? existingEmailRow
+      : findRowById_(sheet, REGISTRATION_HEADERS, data.editId);
     if (existingRowNum !== -1) {
       var idxRaw = REGISTRATION_HEADERS.indexOf('Raw Data (JSON)') + 1;
       var existingRaw = sheet.getRange(existingRowNum, idxRaw).getValue();
@@ -462,19 +547,59 @@ function upsertRegistration_(data) {
   });
 
   if (isEdit) {
-    var rowNum = findRowById_(sheet, REGISTRATION_HEADERS, data.editId);
-    if (rowNum === -1) throw new Error('Submission not found for the given edit link.');
+    var rowNum = existingEmailRow !== -1
+      ? existingEmailRow
+      : findRowById_(sheet, REGISTRATION_HEADERS, data.editId);
+    if (rowNum < 2) throw new Error('Submission not found for the given edit link.');
     sheet.getRange(rowNum, 1, 1, REGISTRATION_HEADERS.length).setValues([row]);
   } else {
     sheet.appendRow(row);
     sendEditEmail_(data.regEmail, editUrl, 'registration');
   }
-  return { id: id, editUrl: editUrl };
+  return { id: id, editUrl: editUrl, updated: isEdit };
+  });
+}
+
+// Removes one spreadsheet row. Does not trash or edit Drive files.
+function deleteSubmission_(data) {
+  if (!ADMIN_KEY || !data || data.key !== ADMIN_KEY) {
+    return { result: 'error', message: 'Unauthorized' };
+  }
+  var formType = data.formType;
+  var isRegistration = formType === 'registration';
+  if (formType !== 'abstract' && !isRegistration) {
+    return { result: 'error', message: 'Unknown form type.' };
+  }
+  var id = data.id ? String(data.id) : '';
+  if (!id) {
+    return { result: 'error', message: 'Submission not found.' };
+  }
+  var headers = isRegistration ? REGISTRATION_HEADERS : ABSTRACT_HEADERS;
+  var sheetName = isRegistration ? REGISTRATIONS_SHEET_NAME : ABSTRACTS_SHEET_NAME;
+
+  return withScriptLock_(function () {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      return { result: 'error', message: 'Submission not found.' };
+    }
+    var rowNum = findRowById_(sheet, headers, id);
+    if (rowNum < 2) {
+      return { result: 'error', message: 'Submission not found.' };
+    }
+    sheet.deleteRow(rowNum);
+    return { result: 'success' };
+  });
 }
 
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
+
+    if (data && data.action === 'delete') {
+      return jsonOutput_(deleteSubmission_(data));
+    }
+
     var result;
 
     if (data.formType === 'registration') {
@@ -483,7 +608,7 @@ function doPost(e) {
       result = upsertAbstract_(data);
     }
 
-    return jsonOutput_({ result: 'success', submissionId: result.id, editUrl: result.editUrl, docUrl: result.docUrl });
+    return jsonOutput_({ result: 'success', submissionId: result.id, editUrl: result.editUrl, docUrl: result.docUrl, updated: !!result.updated });
 
   } catch (err) {
     return jsonOutput_({ result: 'error', message: err.message });

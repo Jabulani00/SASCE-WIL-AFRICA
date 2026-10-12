@@ -99,6 +99,9 @@
   .btn-sm:hover{border-color:var(--navy);}
   .btn-sm.primary{background:var(--blue);border-color:var(--blue);color:#fff;}
   .btn-sm.primary:hover{background:var(--blue-deep);}
+  .btn-sm.danger{border-color:#D64545;color:#B23A3A;}
+  .btn-sm.danger:hover{background:#FBEAEA;border-color:#D64545;}
+  .btn-sm:disabled{opacity:.55;cursor:not-allowed;}
 
   .list-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
   .empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
@@ -346,6 +349,7 @@
     if(editUrl){
       actions.push(`<a class="btn-sm" href="${escapeHtml(editUrl)}" target="_blank" rel="noopener">Open edit link ↗</a>`);
     }
+    actions.push('<button type="button" class="btn-sm danger" data-action="delete">Delete submission</button>');
 
     return `<div class="detail-grid">${gridHtml}</div><div class="detail-actions">${actions.join('')}</div>`;
   }
@@ -616,6 +620,47 @@
     setTimeout(() => { w.print(); }, 300);
   }
 
+  function deleteSubmission(tab, row, btn){
+    const id = row['Submission ID'];
+    if(!id){
+      alert('This submission has no ID, so it cannot be deleted from here.');
+      return;
+    }
+    const label = tab === 'abstracts'
+      ? (row['Abstract title'] || 'this abstract')
+      : (row['Name and Surname'] || 'this registration');
+    const email = row['Email'] || '';
+    const who = email ? `"${label}" (${email})` : `"${label}"`;
+    if(!confirm(`Delete ${who} from the spreadsheet? The file in Drive will be kept. This sheet row cannot be restored.`)) return;
+
+    btn.disabled = true;
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'delete',
+        key: adminKey,
+        formType: tab === 'abstracts' ? 'abstract' : 'registration',
+        id: id
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(!data || data.result !== 'success'){
+        btn.disabled = false;
+        alert((data && data.message) ? data.message : 'Could not delete this submission.');
+        return;
+      }
+      dataStore[tab] = (dataStore[tab] || []).filter(r => r['Submission ID'] !== id);
+      renderStats();
+      renderList();
+    })
+    .catch(() => {
+      btn.disabled = false;
+      alert('Could not reach the server. The submission was not deleted.');
+    });
+  }
+
   function wireDownloadButtons(container, row){
     const tab = activeTab;
     container.querySelectorAll('[data-action]').forEach(btn => {
@@ -624,6 +669,7 @@
         if(action === 'word') downloadWord(tab, row);
         if(action === 'pdf') downloadPdf(tab, row);
         if(action === 'txt') downloadTxt(tab, row);
+        if(action === 'delete') deleteSubmission(tab, row, btn);
       });
     });
   }

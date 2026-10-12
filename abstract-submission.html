@@ -262,7 +262,7 @@
 
 <header class="hero">
   <div class="wrap">
-    <div class="eyebrow">Abstract submission deadline · 27 August 2026</div>
+    <div class="eyebrow">Abstract submission deadline · 01 October 2026</div>
     <h1>SASCE WIL AFRICA CONFERENCE 2026<br><em>Submit your abstract</em></h1>
     <p class="hero-sub">Share your research, practice-based innovation, policy initiative, case study, partnership models and tools, or theoretical contribution with the WIL Africa community. All abstracts undergo peer review.</p>
     <a class="backlink" href="index.html">← Back to registration page</a>
@@ -497,13 +497,13 @@
     <div class="print-editlink-url" id="printEditLink"></div>
     <p>Keep this link private — anyone with it can view and update this submission. It has also been emailed to the corresponding author.</p>
   </div>
-  <p class="print-footer">Generated on <span id="printDate"></span> · SASCE WIL AFRICA CONFERENCE 2026 · 29 September – 01 October 2026 · Johannesburg, South Africa</p>
+  <p class="print-footer">Generated on <span id="printDate"></span> · SASCE WIL AFRICA CONFERENCE 2026 · 23–25 November 2026 · Wits Sport Centre, Johannesburg, South Africa</p>
 </div>
 
 <footer>
   <div class="wrap">
     <div><strong>SASCE WIL AFRICA CONFERENCE 2026</strong> · Co-hosted by the Wits School of Education</div>
-    <div>29 September – 01 October 2026 · Johannesburg, South Africa · <a href="admin.html" style="color:#8FA3B3;">Admin</a></div>
+    <div>23–25 November 2026 · Wits Sport Centre, Johannesburg, South Africa · <a href="admin.html" style="color:#8FA3B3;">Admin</a></div>
   </div>
 </footer>
 
@@ -751,12 +751,14 @@
       if(data && data.result === 'success'){
         showConfirmation(data.submissionId, data.editUrl, data.docUrl);
       } else {
+        submitError.textContent = (data && data.message) ? data.message : 'Something went wrong sending your abstract. Please check your connection and try again.';
         submitError.classList.add('show');
       }
     })
     .catch(() => {
       submitBtn.disabled = false;
       submitBtn.textContent = editId ? 'Update abstract' : 'Submit abstract';
+      submitError.textContent = 'Something went wrong sending your abstract. Please check your connection and try again.';
       submitError.classList.add('show');
     });
   });

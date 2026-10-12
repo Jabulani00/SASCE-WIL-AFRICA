@@ -194,6 +194,109 @@
     .price-block .infocell{border-right:none;border-bottom:1px solid rgba(255,255,255,0.14);}
   }
 
+  /* ---------- DELEGATE LETTER ---------- */
+  .delegate-letter{
+    background:
+      radial-gradient(circle at 0 0, rgba(201,145,21,0.18), transparent 42%),
+      linear-gradient(135deg, #1E3A56 0%, #2B4C6F 58%, #1a4544 100%);
+    padding:28px 0 32px;
+  }
+  .letter{
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.22);
+    overflow:hidden;
+  }
+  .letter summary{
+    list-style:none;
+    cursor:pointer;
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:16px 18px;
+    align-items:center;
+    padding:20px 22px;
+  }
+  .letter summary::-webkit-details-marker{display:none;}
+  .letter summary:focus-visible{outline:3px solid var(--teal);outline-offset:-3px;}
+  .letter-badge{
+    background:#C99115;
+    color:#1E3A56;
+    font-family:'Roboto',sans-serif;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:8px 12px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .letter-head{min-width:0;}
+  .letter-head h2{
+    font-size:clamp(20px,2.4vw,26px);
+    color:var(--navy);
+    line-height:1.2;
+    font-weight:700;
+  }
+  .letter-head p{margin-top:4px;color:var(--ink-soft);font-size:14.5px;}
+  .letter-toggle{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--navy);color:#fff;
+    font-size:13px;font-weight:700;
+    padding:10px 14px;border-radius:20px;
+    white-space:nowrap;
+  }
+  .letter-toggle::after{content:"▾";font-size:12px;transition:transform .2s ease;}
+  .letter[open] .letter-toggle::after{transform:rotate(180deg);}
+  .letter-body{
+    border-top:1px solid var(--line);
+    padding:8px 28px 28px;
+    background:linear-gradient(#fff, #F7F9FA 140px);
+  }
+  .letter-greeting{
+    font-family:'Roboto',sans-serif;
+    font-size:18px;
+    color:var(--navy);
+    margin:18px 0 8px;
+  }
+  .letter-intro{color:var(--ink);font-size:15.5px;max-width:760px;margin-bottom:18px;}
+  .letter-list{list-style:none;display:flex;flex-direction:column;gap:12px;}
+  .letter-list li{
+    display:grid;
+    grid-template-columns:36px 1fr;
+    gap:12px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-left:4px solid #C99115;
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:14.5px;
+    color:var(--ink);
+  }
+  .letter-num{
+    width:36px;height:36px;border-radius:50%;
+    background:var(--navy);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Roboto',sans-serif;font-weight:700;font-size:14px;
+  }
+  .letter-list strong{color:var(--navy);}
+  .letter-list a{color:var(--teal-deep);font-weight:700;}
+  .letter-link{margin-top:8px;}
+  .letter-callout{
+    margin-top:10px;
+    background:#FFF6E4;
+    border:1px solid #E4C27A;
+    color:#6A4A08;
+    border-radius:8px;
+    padding:10px 12px;
+    font-weight:700;
+    font-size:13.5px;
+  }
+  @media (max-width:700px){
+    .letter summary{grid-template-columns:1fr auto;padding:16px;}
+    .letter-badge{grid-column:1 / -1;}
+    .letter-body{padding:4px 16px 20px;}
+  }
+
   /* ---------- SECTION SHARED ---------- */
   section{padding:56px 0;}
   @media (max-width:640px){ section{padding:40px 0;} }
@@ -525,7 +628,7 @@
     </svg>
   </div>
   <div class="wrap">
-    <div class="eyebrow">29 Sept – 01 Oct 2026 · Johannesburg, South Africa</div>
+    <div class="eyebrow">23–25 November 2026 · Wits Sport Centre, Johannesburg, South Africa</div>
     <h1>SASCE WIL AFRICA CONFERENCE 2026<br><em>Register to attend</em></h1>
     <p class="hero-sub">Transforming education through Work-Integrated Learning and occupational skills for Africa's development agenda — building future-ready skills ecosystems across higher education, TVET, industry, and government.</p>
     <div class="hero-book">
@@ -541,16 +644,77 @@
   </div>
 </header>
 
+<section class="delegate-letter" aria-label="Delegate checklist">
+  <div class="wrap">
+    <details class="letter">
+      <summary>
+        <span class="letter-badge">Checklist ONE · 9 Oct 2026</span>
+        <div class="letter-head">
+          <h2>Dear WIL AFRICA Delegate</h2>
+          <p>The Conference CHECKLIST is ready for immediate attention. Please action!</p>
+        </div>
+        <span class="letter-toggle">Read the letter</span>
+      </summary>
+      <div class="letter-body">
+        <p class="letter-greeting">Dear WIL AFRICA Delegate</p>
+        <p class="letter-intro">As we continue the countdown, we trust that your preparations for WIL AFRICA 2026 attendance are on track!</p>
+        <p class="letter-intro"><strong>Checklist ONE — 9 Oct 2026.</strong> Please ensure that:</p>
+        <ol class="letter-list">
+          <li>
+            <span class="letter-num">1</span>
+            <div>
+              <strong>Registration form completed</strong> for each delegate, including guest speakers.
+              Registration is imperative to guarantee individual access to the Wits Sport Conference Centre.
+              <div class="letter-link"><a href="#register">Complete the registration form</a></div>
+            </div>
+          </li>
+          <li>
+            <span class="letter-num">2</span>
+            <div>If registered within the Early Bird window, you have received the correct Conference invoice, and had it processed within cut-off times.</div>
+          </li>
+          <li>
+            <span class="letter-num">3</span>
+            <div>
+              Conference fees have been paid and Proof of Payment sent to / received by SASCE via <a href="mailto:admin@sasce.net">admin@sasce.net</a> no later than 12 October for Early Bird rates.
+              <div class="letter-callout">Registrations and payments outside the Early Bird window will attract normal rates — unless a special payment arrangement had been made by the institution and an undertaking confirmed in writing prior to closing of the early bird window.</div>
+            </div>
+          </li>
+          <li>
+            <span class="letter-num">4</span>
+            <div>
+              Your abstract submission has been confirmed, the abstract accepted and reviewed, subsequent to which your revised version was submitted where applicable. If unsure of abstract status, please re-check and upload.
+              For enquiries please email <a href="mailto:research@sasce.net">research@sasce.net</a>, stating your allocated Abstract number (WILAB No.). Final submissions should be sent no later than 1 November 2026 to secure a conference presentation slot.
+              <div class="letter-link"><a href="abstract-submission.html">Upload or update your abstract</a></div>
+            </div>
+          </li>
+          <li>
+            <span class="letter-num">5</span>
+            <div>Presentation slots at the Conference are arranged according to the sub-themes. Please liaise via WhatsApp <a href="https://wa.me/27833152522">083 315 2522</a> once you have your attendance confirmed.</div>
+          </li>
+          <li>
+            <span class="letter-num">6</span>
+            <div>Where applicable, your Research Workshop attendance request has been submitted via the registration channel, bearing in mind that priority is given to delegates who have submitted abstracts and delegates or guests who intend to write full research papers or WIL-related academic articles.</div>
+          </li>
+          <li>
+            <span class="letter-num">7</span>
+            <div>Your accommodation is secured. Hotel rooms held for the Early Bird special window at the Milpark Garden Court are to be released on 12 October 2026.</div>
+          </li>
+        </ol>
+      </div>
+    </details>
+  </div>
+</section>
+
 <div class="infostrip">
   <div class="wrap">
     <div class="infogrid">
       <div class="infocell">
         <div class="label">Conference dates</div>
-        <div class="value">29 Sep – 01 Oct 2026</div>
+        <div class="value">23–25 November 2026</div>
       </div>
       <div class="infocell">
-        <div class="label">Abstract deadline</div>
-        <div class="value">27 August 2026</div>
+        <div class="label">Venue</div>
+        <div class="value">Wits Sport Centre</div>
       </div>
       <div class="infocell">
         <div class="label">Co-hosted by</div>
@@ -563,21 +727,21 @@
 <div class="price-block">
   <div class="wrap">
     <div class="price-heading">
-      <span class="price-badge">Registration prices</span>
-      <span class="price-note">Select your category when you register below</span>
+      <span class="price-badge">Registration Fees</span>
+      <span class="price-note">Normal rates · Select your category when you register below</span>
     </div>
     <div class="infogrid">
       <div class="infocell">
         <div class="label">Standard / Non-member</div>
-        <div class="value">R14 500</div>
+        <div class="value">R15 000</div>
       </div>
       <div class="infocell">
         <div class="label">Corporate / Individual Member</div>
-        <div class="value">R10 999</div>
+        <div class="value">R13 150</div>
       </div>
       <div class="infocell">
         <div class="label">Platinum Member</div>
-        <div class="value">R8 860</div>
+        <div class="value">R11 000</div>
       </div>
     </div>
   </div>
@@ -799,24 +963,24 @@
           <legend>Registration fee category *</legend>
           <div class="fee-options">
             <div class="fee-option">
-              <input type="radio" name="feeCategory" id="fee-standard" value="Standard/Non-member: R14500">
+              <input type="radio" name="feeCategory" id="fee-standard" value="Standard/Non-member: R15000">
               <label for="fee-standard">
                 <span class="fee-name">Standard / Non-member</span>
-                <span class="fee-price">R14 500</span>
+                <span class="fee-price">R15 000</span>
               </label>
             </div>
             <div class="fee-option">
-              <input type="radio" name="feeCategory" id="fee-corporate" value="Corporate/Individual Member: R10999">
+              <input type="radio" name="feeCategory" id="fee-corporate" value="Corporate/Individual Member: R13150">
               <label for="fee-corporate">
                 <span class="fee-name">Corporate / Individual Member</span>
-                <span class="fee-price">R10 999</span>
+                <span class="fee-price">R13 150</span>
               </label>
             </div>
             <div class="fee-option">
-              <input type="radio" name="feeCategory" id="fee-platinum" value="Platinum Member: R8860">
+              <input type="radio" name="feeCategory" id="fee-platinum" value="Platinum Member: R11000">
               <label for="fee-platinum">
                 <span class="fee-name">Platinum Member</span>
-                <span class="fee-price">R8 860</span>
+                <span class="fee-price">R11 000</span>
               </label>
             </div>
           </div>
@@ -833,9 +997,9 @@
 
     <div class="confirm-card" id="confirmCard">
       <div class="confirm-badge">✓</div>
-      <h3>Registration received</h3>
-      <p>Thank you — your place for the SASCE WIL AFRICA CONFERENCE 2026 has been recorded below.</p>
-      <p>A confirmation will follow from the organising committee ahead of the abstract submission deadline on 27 August 2026.</p>
+      <h3 id="confirmHeading">Registration received</h3>
+      <p id="confirmLead">Thank you — your place for the SASCE WIL AFRICA CONFERENCE 2026 has been recorded below.</p>
+      <p>A confirmation will follow from the organising committee.</p>
       <div class="confirm-summary" id="confirmSummary"></div>
       <div class="edit-link-box">
         <div class="lbl">Need to make changes later?</div>
@@ -867,13 +1031,13 @@
     <div class="print-editlink-url" id="printEditLink"></div>
     <p>Keep this link private — anyone with it can view and update this submission. It has also been emailed to you.</p>
   </div>
-  <p class="print-footer">Generated on <span id="printDate"></span> · SASCE WIL AFRICA CONFERENCE 2026 · 29 September – 01 October 2026 · Johannesburg, South Africa</p>
+  <p class="print-footer">Generated on <span id="printDate"></span> · SASCE WIL AFRICA CONFERENCE 2026 · 23–25 November 2026 · Wits Sport Centre, Johannesburg, South Africa</p>
 </div>
 
 <footer>
   <div class="wrap">
     <div><strong>SASCE WIL AFRICA CONFERENCE 2026</strong> · Co-hosted by the Wits School of Education</div>
-    <div>29 September – 01 October 2026 · Johannesburg, South Africa · <a href="admin.html" style="color:#8FA3B3;">Admin</a></div>
+    <div>23–25 November 2026 · Wits Sport Centre, Johannesburg, South Africa · <a href="admin.html" style="color:#8FA3B3;">Admin</a></div>
   </div>
 </footer>
 
@@ -1041,7 +1205,11 @@
       return;
     }
 
-    function showConfirmation(submissionId, editUrlFromServer){
+    function showConfirmation(submissionId, editUrlFromServer, updated){
+      if(updated || editId){
+        document.getElementById('confirmHeading').textContent = 'Registration updated';
+        document.getElementById('confirmLead').textContent = 'Your existing registration was updated. No second registration was created.';
+      }
       const summaryRows = [
         ['Name', title + ' ' + fullName],
         ['Email', regEmail],
@@ -1128,14 +1296,16 @@
       regSubmitBtn.disabled = false;
       regSubmitBtn.textContent = editId ? 'Update registration' : 'Submit registration';
       if(data && data.result === 'success'){
-        showConfirmation(data.submissionId, data.editUrl);
+        showConfirmation(data.submissionId, data.editUrl, !!data.updated);
       } else {
+        regSubmitError.textContent = (data && data.message) ? data.message : 'Something went wrong sending your registration. Please check your connection and try again.';
         regSubmitError.classList.add('show');
       }
     })
     .catch(() => {
       regSubmitBtn.disabled = false;
       regSubmitBtn.textContent = editId ? 'Update registration' : 'Submit registration';
+      regSubmitError.textContent = 'Something went wrong sending your registration. Please check your connection and try again.';
       regSubmitError.classList.add('show');
     });
   });
